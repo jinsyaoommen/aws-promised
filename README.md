@@ -6,17 +6,18 @@ Provides Promises/A+ compliant versions of all your favorite AWS SDK clients.
 
 [![NPM](https://nodei.co/npm/aws-promised.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/aws-promised/)
 
-#### Disclaimer
+# DISCLAIMER :exclamation: :warning:
 
 This module is a work in progress. Not all of the AWS SDK clients are wrapped
 at this point. If you want to add one, it's really easy. Pretty please see the contribution section below
 
 This is a list of the currently implemented clients:
 
+- [AutoScaling](http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/AutoScaling.html)
 - [EC2](http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html)
 - [IAM](http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/IAM.html)
 - [S3](http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html)
-
+- [SQS](http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/SQS.html)
 
 #### What this module does.
 
@@ -28,9 +29,9 @@ Basically,
 
 **Into**
 
-`s3.getObjectAsync` -- A Promises/A+ style API
+`s3.getObjectPromised` -- A Promises/A+ style API
 
-It decorates [aws-sdk](https://github.com/aws/aws-sdk-js) client instances with "Async" suffixed methods.
+It decorates [aws-sdk](https://github.com/aws/aws-sdk-js) client instances with "Promised" suffixed methods.
 Internally `aws-promised` uses
 [bluebird](https://github.com/petkaantonov/bluebird) and it's
 [.promisifyAll](https://github.com/petkaantonov/bluebird/blob/master/API.md#promisepromisifyallobject-target--object-options---object)
@@ -39,30 +40,68 @@ to perform this client decoration.
 The nice thing about this approach is that it only adds new methods to the client. All of the orginal aws-sdk methods
 are still available for use when you need them.
 
-For instance, the "Async" promised methods return promises and not instances of
+For instance, the "Promised" methods return promises and not instances of
 [AWS.Request](http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Request.html). So when you want to do something
 with AWS.Request (like open up a Node.js data stream from an s3 file) you're still able to use the original `getObject` 
-method to create the stream.
+method and `createReadStream`.
 
-```
-var s3 = require('aws-promised/getS3')();
-var params = { Bucket: 'foo', Key: 'bar.txt' };
-var fileStream = s3.getObject(param).createReadStream();
-```
+**Why "Promised" and not "Async" suffix?**
+
+Astute users of `bluebird` will notice that this module doesn't use the default suffix of `Async` for the promisified
+methods. This is because the `AWS.Lambda` client has one single method which already uses that suffix -- `.invokeAsync`. 
+`bluebird` throws an error when trying to promisify an API which contains methods with the promisified suffix.
 
 #### Usage
 
+Really basic, get an object from s3, then log it's contents.
+
 ```javascript
-var awsPromised = require('aws-promised');
-var s3 = awsPromised.getS3({ region: 'us-west-2' });
+'use strict';
+
+var getS3 = require('../getS3');
+var s3 = getS3();
 
 var params = {
-  Bucket: 'my-bucket-name',
+  Bucket: 'my-bucket',
   Key: 'foo.txt'
 };
 
-s3.getObjectAsync(params).then(console.log).catch(console.error);
+s3.getObjectPromised(params)
+  .then(printContents)
+  .catch(console.error);
+
+function printContents(data) {
+  console.log(data.Body.toString()); // contents of foo.txt
+}
 ```
+
+Extract a message from an SQS queue and print it's body.
+
+```javascript
+var getSQS = require('../getSQS');
+var sqs = getSQS({ region: 'us-west-2' });
+
+sqs
+  .getQueueUrlPromised({ QueueName: 'my-queue' })
+  .then(receiveMessage)
+  .then(logMessageBodies)
+  .catch(console.error);
+
+function receiveMessage(data) {
+  return sqs.receiveMessagePromised({ QueueUrl: data.QueueUrl });
+}
+
+function logMessageBodies(data) {
+  data.Messages.forEach(function(message) {
+    console.log(message.Body);
+  });
+}
+```
+
+There are examples using several different clients in the `examples/` directory of this repo. By changing names in
+them to match components deployed in your aws account, you can run them quite easily. You will need
+[SDK credentials](http://docs.aws.amazon.com/AWSJavaScriptSDK/guide/node-configuring.html#Setting_AWS_Credentials) and
+if you do launch services from those scripts you **will** incur the cost.
 
 #### Node-style modules
 
@@ -72,6 +111,7 @@ In the above Usage example the `getS3` method can be required directly.
 
 ```
 var getS3 = require('aws-promised/getS3');
+var s3 = getS3({ region: 'us-west-2' });
 ```
 
 Or even...

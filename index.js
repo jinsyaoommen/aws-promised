@@ -8,13 +8,26 @@
  * not already exist it is created, otherwise the existing one is returned.
  *
  * @type {{
+ *  getAutoScaling: (*|exports|module.exports),
  *  getEC2: (*|exports|module.exports),
  *  getIAM: (*|exports|module.exports),
+<<<<<<< HEAD
  *  getS3: (*|exports|module.exports),
  *  getDynamoDB: (*|exports|module.exports)
+=======
+ *  getS3: (*|exports|module.exports)
+ *  getSQS: (*|exports|module.exports)
+>>>>>>> 145a0f71f85ff708b24aed43e26446a5ac6be2e0
  * }}
  */
 module.exports = {
+  /**
+   * Returns a Promises compliant AWS.AutoScaling api.
+   *
+   * @param {object} options The AWS.AutoScaling constructor options.
+   */
+  getAutoScaling: require('./getAutoScaling'),
+
   /**
    * Returns a Promises compliant AWS.EC2 api.
    *
@@ -41,5 +54,12 @@ module.exports = {
    *
    * @param {object} options The AWS.DynamoDB constructor options.
    */
-  getDynamoDb: require('./getDynamoDb')
+  getDynamoDb: require('./getDynamoDb'),
+
+  /**
+   * Returns a Promises compliant AWS.SQS api.
+   *
+   * @param {object} options The AWS.SQS constructor options.
+   */
+  getSQS: require('./getSQS')
 };

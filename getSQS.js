@@ -4,17 +4,17 @@ var AWS = require('aws-sdk');
 var memoize = require('lodash/function/memoize');
 var promisifyAll = require('./lib/promisifyAll');
 
-function getIAM(options) {
-  return promisifyAll(new AWS.IAM(options));
+function getSQS(options) {
+  return promisifyAll(new AWS.SQS(options));
 }
 
 /**
- * Returns an instance of AWS.IAM which has Promise methods
+ * Returns an instance of AWS.SQS which has Promise methods
  * suffixed by "Promised"
  *
  * e.g.
- * createRole => createRolePromised
+ * receiveMessage : receiveMessagePromised
  *
  * @param options
  */
-module.exports = memoize(getIAM);
+module.exports = memoize(getSQS);
