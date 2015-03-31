@@ -10,7 +10,8 @@
  * @type {{
  *  getEC2: (*|exports|module.exports),
  *  getIAM: (*|exports|module.exports),
- *  getS3: (*|exports|module.exports)
+ *  getS3: (*|exports|module.exports),
+ *  getDynamoDB: (*|exports|module.exports)
  * }}
  */
 module.exports = {
@@ -33,5 +34,12 @@ module.exports = {
    *
    * @param {object} options The AWS.S3 constructor options.
    */
-  getS3: require('./getS3')
+  getS3: require('./getS3'),
+
+  /**
+   * Returns a Promises compliant AWS.DynamoDB api.
+   *
+   * @param {object} options The AWS.DynamoDB constructor options.
+   */
+  getDynamoDb: require('./getDynamoDb')
 };
